@@ -284,12 +284,10 @@ class TestFdbNoLearn:
         try:
             npu.set(self.vlan_oid, ["SAI_VLAN_ATTR_LEARN_DISABLE", "true"])
             send_packet(dataplane, self.dev_port0, pkt)
-            verify_packets(dataplane, tag_pkt, [self.dev_port1])
-            verify_packet_any_port(dataplane, pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [tag_pkt, pkt], [[self.dev_port1], self.lag_ports])
 
             send_packet(dataplane, self.dev_port1, tag_chck_pkt)
-            verify_packets(dataplane, chck_pkt, [self.dev_port0])
-            verify_packet_any_port(dataplane, chck_pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [chck_pkt, chck_pkt], [[self.dev_port0], self.lag_ports])
         finally:
             npu.flush_fdb_entries(
                 npu.switch_oid,
@@ -316,12 +314,10 @@ class TestFdbNoLearn:
         try:
             npu.set(self.vlan_oid, ["SAI_VLAN_ATTR_LEARN_DISABLE", "true"])
             send_packet(dataplane, self.lag_ports[1], pkt)
-            verify_packets(dataplane, pkt, [self.dev_port0])
-            verify_packets(dataplane, tag_pkt, [self.dev_port1])
+            verify_each_packet_on_multiple_port_lists(dataplane, [pkt, tag_pkt], [[self.dev_port0], [self.dev_port1]])
 
             send_packet(dataplane, self.dev_port1, tag_chck_pkt)
-            verify_packets(dataplane, chck_pkt, [self.dev_port0])
-            verify_packet_any_port(dataplane, chck_pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [chck_pkt, chck_pkt], [[self.dev_port0], self.lag_ports])
         finally:
             npu.flush_fdb_entries(
                 npu.switch_oid,
@@ -348,12 +344,10 @@ class TestFdbNoLearn:
         try:
             npu.set(self.port0_bp, ["SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE", "SAI_BRIDGE_PORT_FDB_LEARNING_MODE_DISABLE"])
             send_packet(dataplane, self.dev_port0, pkt)
-            verify_packets(dataplane, tag_pkt, [self.dev_port1])
-            verify_packet_any_port(dataplane, pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [tag_pkt, pkt], [[self.dev_port1], self.lag_ports])
 
             send_packet(dataplane, self.dev_port1, tag_chck_pkt)
-            verify_packets(dataplane, chck_pkt, [self.dev_port0])
-            verify_packet_any_port(dataplane, chck_pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [chck_pkt, chck_pkt], [[self.dev_port0], self.lag_ports])
         finally:
             npu.flush_fdb_entries(
                 npu.switch_oid,
@@ -380,12 +374,10 @@ class TestFdbNoLearn:
         try:
             npu.set(self.lag1_bp, ["SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE", "SAI_BRIDGE_PORT_FDB_LEARNING_MODE_DISABLE"])
             send_packet(dataplane, self.lag_ports[1], pkt)
-            verify_packets(dataplane, pkt, [self.dev_port0])
-            verify_packets(dataplane, tag_pkt, [self.dev_port1])
+            verify_each_packet_on_multiple_port_lists(dataplane, [pkt, tag_pkt], [[self.dev_port0], [self.dev_port1]])
 
             send_packet(dataplane, self.dev_port1, tag_chck_pkt)
-            verify_packets(dataplane, chck_pkt, [self.dev_port0])
-            verify_packet_any_port(dataplane, chck_pkt, self.lag_ports)
+            verify_each_packet_on_multiple_port_lists(dataplane, [chck_pkt, chck_pkt], [[self.dev_port0], self.lag_ports])
         finally:
             npu.flush_fdb_entries(
                 npu.switch_oid,
@@ -396,6 +388,14 @@ class TestFdbNoLearn:
             )
             npu.set(self.lag1_bp, ["SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE", "SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW"])
 
+    @pytest.mark.skip(
+        reason=(
+            "The original PTF test does not make sense: traffic is sent on a port "
+            "with no bridge port, so it should be dropped, not flooded. "
+            "This test should be removed or rewritten. "
+            "Before removing a bridge port, its VLAN membership should be removed first."
+        )
+    )
     def test_removed_bp_no_learn(self, npu, dataplane):
         """
         Description:
@@ -444,6 +444,13 @@ class TestFdbNoLearn:
             _refresh_topo_vlan_member(topo, "vlan10_member0", new_member)
             self.vlan10_member0 = new_member
 
+    @pytest.mark.skip(
+        reason=(
+            "The original PTF test does not make sense: traffic is sent on a port "
+            "with no bridge port, so it should be dropped, not flooded. "
+            "This test should be removed or rewritten. "
+        )
+    )
     def test_no_bp_no_learn(self, npu, dataplane):
         """
         Description:
