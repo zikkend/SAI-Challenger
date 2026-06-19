@@ -25,16 +25,49 @@ def skip_all(testbed_instance):
         pytest.skip('invalid for "{}" testbed'.format(testbed.name))
 
 
-@pytest.fixture(autouse=True)
-def on_prev_test_failure(prev_test_failed, npu):
-    if prev_test_failed:
-        npu.reset()
+class _SaiPtfTopologyHolder:
+    """Module-scoped PTF topology with reset + recreate on prior test failure."""
+
+    def __init__(self, npu):
+        self._npu = npu
+        self._ctx = None
+        self.topo = None
+
+    def create(self):
+        self._ctx = saichallenger.topologies.sai_ptf_topology.config(self._npu)
+        self.topo = self._ctx.__enter__()
+        return self.topo
+
+    def destroy(self):
+        if self._ctx is not None:
+            self._ctx.__exit__(None, None, None)
+            self._ctx = None
+            self.topo = None
+
+    def recreate(self):
+        self._ctx = None
+        self.topo = None
+        self._npu.reset()
+        return self.create()
 
 
 @pytest.fixture(scope="module")
-def sai_ptf_topology(npu):
-    with saichallenger.topologies.sai_ptf_topology.config(npu) as topo:
-        yield topo
+def sai_ptf_topo_holder(npu):
+    holder = _SaiPtfTopologyHolder(npu)
+    holder.create()
+    yield holder
+    holder.destroy()
+
+
+@pytest.fixture(autouse=True)
+def on_prev_test_failure(prev_test_failed, sai_ptf_topo_holder):
+    if prev_test_failed:
+        sai_ptf_topo_holder.recreate()
+
+
+@pytest.fixture
+def sai_ptf_topology(sai_ptf_topo_holder, on_prev_test_failure):
+    return sai_ptf_topo_holder.topo
 
 
 def _vlan_data(vlan_id, ports, untagged, large_port):
@@ -75,7 +108,7 @@ def _vlan_stats_map(npu, vlan_oid):
 
 
 class TestL2Vlan:
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(autouse=True)
     def setup_teardown(self, request, npu, sai_ptf_topology):
         topo = sai_ptf_topology
         if len(npu.port_oids) < 32:
