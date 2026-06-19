@@ -26,8 +26,9 @@ def skip_all(testbed_instance):
 
 
 class _SaiPtfTopologyHolder:
-    """Module-scoped PTF topology with reset + recreate on prior test failure."""
-
+    """
+    Module-scoped PTF topology with reset + recreate on prior test failure.
+    """
     def __init__(self, npu):
         self._npu = npu
         self._ctx = None
