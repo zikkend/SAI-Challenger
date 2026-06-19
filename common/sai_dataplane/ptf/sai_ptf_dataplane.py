@@ -255,3 +255,7 @@ class SaiPtfDataPlane(SaiDataPlane, TestCase):
 
     def teardown(self):
         self.tearDown()
+        
+    def flush(self):
+        if self.dataplane is not None:
+            self.dataplane.flush()
