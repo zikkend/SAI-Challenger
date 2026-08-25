@@ -182,7 +182,7 @@ class SaiNpu(Sai):
 
     def remove_bridge_port(self, bp_oid):
         self.set(bp_oid, ["SAI_BRIDGE_PORT_ATTR_ADMIN_STATE", "false"])
-        self.flush_fdb_entries(bp_oid, ["SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID", bp_oid])
+        self.flush_fdb_entries(self.switch_oid, ["SAI_FDB_FLUSH_ATTR_BRIDGE_PORT_ID", bp_oid])
         self.remove(bp_oid)
 
     def _route_entry_key(self, vr_oid, prefix):
