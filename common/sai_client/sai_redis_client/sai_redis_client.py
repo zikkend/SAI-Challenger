@@ -632,7 +632,11 @@ class SaiRedisClient(SaiClient):
         if do_assert:
             assert status[2] == 'SAI_STATUS_SUCCESS', f"get_availability({switch_oid}, {attrs}) --> {status}"
 
-        data = SaiData(status[1].decode("utf-8")).uint32()
+        if status[2] == 'SAI_STATUS_SUCCESS':
+            data = SaiData(status[1].decode("utf-8")).uint32()
+        else:
+            data = None
+
         if do_assert:
             return data
 

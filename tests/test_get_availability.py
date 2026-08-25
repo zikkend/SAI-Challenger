@@ -1,12 +1,16 @@
 import pytest
 from saichallenger.common.sai_data import SaiObjType
+from sai_client.sai_redis_client.sai_redis_client import SaiRedisClient
 
 
 @pytest.fixture(scope="module", autouse=True)
-def skip_all(testbed_instance):
+def skip_all(testbed_instance, npu):
     testbed = testbed_instance
     if testbed is not None and len(testbed.npu) != 1:
         pytest.skip("invalid for \"{}\" testbed".format(testbed.name))
+    
+    if not isinstance(npu.sai_client, SaiRedisClient):
+        pytest.skip("Get availability logic is not implemented for non-redis SAI client")
 
 @pytest.fixture(autouse=True)
 def on_prev_test_failure(prev_test_failed, npu):
