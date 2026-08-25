@@ -180,6 +180,11 @@ class SaiNpu(Sai):
         assert vlan_mbr_oid, f"Bridge Port {bp_oid} is not a member of VLAN {vlan_oid}"
         self.remove(vlan_mbr_oid)
 
+    def remove_bridge_port(self, bp_oid):
+        self.set(bp_oid, ["SAI_BRIDGE_PORT_ATTR_ADMIN_STATE", "false"])
+        self.flush_fdb_entries(bp_oid, ["SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID", bp_oid])
+        self.remove(bp_oid)
+
     def _route_entry_key(self, vr_oid, prefix):
         return "SAI_OBJECT_TYPE_ROUTE_ENTRY:" + json.dumps(
             {
@@ -242,7 +247,7 @@ class SaiNpu(Sai):
             oid =  self.get_vlan_member(self.default_vlan_oid, self.dot1q_bp_oids[idx])
             if oid:
                 self.remove(oid)
-            self.remove(self.dot1q_bp_oids[idx])
+            self.remove_bridge_port(self.dot1q_bp_oids[idx])
             status, data = self.get(self.port_oids[idx], ["SAI_PORT_ATTR_PORT_SERDES_ID"], do_assert=False)
             if status == "SAI_STATUS_SUCCESS" and data.oid() != "oid:0x0":
                 self.remove(data.oid())
