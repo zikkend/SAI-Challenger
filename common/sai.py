@@ -355,6 +355,10 @@ class Sai():
     def flush_fdb_entries(self, obj, attrs=None):
         self.sai_client.flush_fdb_entries(obj, attrs)
 
+    # Get availability
+    def get_availability(self, obj, attrs=[], do_assert=True):
+        return self.sai_client.get_availability(obj, attrs)
+
     # Host interface
     def remote_iface_exists(self, iface):
         return self.sai_client.remote_iface_exists(iface)

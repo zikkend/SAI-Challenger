@@ -617,6 +617,29 @@ class SaiRedisClient(SaiClient):
         # syncd is running, but it may have not restored state before warm-shutdown
         time.sleep(tout)
 
+    def get_availability(self, obj, attrs, do_assert=True):
+        import pdb; pdb.set_trace()
+        assert obj.startswith("oid:")
+
+        if type(attrs) != str:
+            attrs = json.dumps(attrs)
+        status = self.operate(obj, attrs, "Sobject_type_get_availability_query")
+        status[2] = status[2].decode("utf-8")
+        
+        if do_assert:
+            assert status[2] == 'SAI_STATUS_SUCCESS', f"get_availability({obj}, {attrs}) --> {status}"
+
+        data = SaiData(status[1].decode("utf-8"))
+        # raw = status[1].decode("utf-8")
+        # if raw.startswith("COUNT="):
+        #     raw = json.dumps(["COUNT", raw.split("=", 1)[1]])
+        # data = SaiData(raw)
+        if do_assert:
+            return data
+
+        return status[2], data
+
+
 
     def flush_fdb_entries(self, obj, attrs=None):
         """
